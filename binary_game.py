@@ -1,52 +1,97 @@
+import os
+import time
+
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
+    time.sleep(.5)
 
+
+# Prompts the player to choose whether they want to be timed or not
+# Also prompts the player to select the number of bits they want to
+# attempt to guess
 def bits_time():
-    try:
-        time = input("""
-Timed games have 10 questions.
-Would you like to play a timed game? [Yes/No] )
-""").lower()
 
-        if time in "yes":
-            time = True
-        elif time in "no":
-            time = False
-        else:
-            raise ValueError('Please type "yes" or "no".')
-    except ValueError as error:
-        print(error)
+    time_message = ("Timed games have 10 questions.\n"
+                    "Would you like to play a timed game?"
+                    "[Yes/No] ")
 
-    try:
-        bits = input("""
-Enter the number of bits you would like to guess.
-The number must be a multiple of 2.
-If you leave this box blank, the game will default to 8 bits.
-The minimum and maximum selectable numbers are 2 and 64.
-""")
-        if bits % 2 == 0 and bits < 66 and bits > 0:
-            return bits, time
+    bits_message = ("Enter the number of "
+                   "bits you would like to guess.\n"
+                   "The number must be a multiple of 2.\n"
+                   "If you leave this box blank, "
+                   "the game will default to 8 bits.\n"
+                   "The minimum and maximum selectable "
+                   "numbers are 2 and 64. ")
+
+    while True:
+        try:
+            time = input(time_message).lower()
+
+            clear_screen()
+            if time == "y" or time == "yes":
+                time = True
+                break
+            elif time == "n" or time == "no":
+                time = False
+                break
+            else:
+                clear_screen()
+                raise ValueError('Please type "Yes" or "No".')
+        except ValueError as error:
+            print(error)
+
+    while True:
+        try:
+            bits = int(input(bits_message))
+
+        except ValueError:
+            num_message = ("You must select a number between 2 and 64! ")
+            clear_screen()
+            continue
         else:
-            raise ValueError('Please type a number between 2 and 64.')
-    
+            clear_screen()
+            if bits % 2 == 0 and bits < 66 and bits > 0:
+                return bits, time
+            else:
+                print("You must select a number between 2 and 64! ")
+
 
 def binary_mode(bits, time):
+    if time == True:
+        print('Time is True.')
+    else:
+        print('Time is a lie.')
+
+    print(bits)
 
 def hex_mode(bits, time):
-
+    pass
 
 # Starts the game and prompts user to select a mode.
 def start_game():
-    welcome_message = "Welcome to the Binary/Hexadecimal Speed Testing Game!\n"
-    
+
+    clear_screen()
+
+    welcome_message = "Welcome to the Binary/Hexadecimal Speed Testing Game!"
+
     print(welcome_message)
+
+    input('Press "Enter" to continue!')
+
+    clear_screen()
 
     try:
         game_mode = input("Would you like to play in [b]inary or [h]ex mode? ").lower()
+
+        clear_screen()
+        
         if game_mode in "binary":
-            binary_mode()
+            binary_mode(*bits_time())
+
         elif game_mode in "hex":
-            hex_mode()
+            hex_mode(*bits_time())
+
         else:
             raise ValueError('Please type in "hex" or "binary".')
     except ValueError as err:
@@ -59,10 +104,6 @@ def start_game():
 start_game()
 
 
-
-# Ask user if they want to guess in hex or binary
-
-# Ask user for number of bits they would like to guess, range 2-16 (for now)
 
 # Have a timer increment time
 
