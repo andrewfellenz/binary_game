@@ -1,34 +1,45 @@
 import os
 import random
 import time
-import datetime
-
+import threading
 
 # This file will continue the classes used for the games
 # This is the parent class for the games
 class Game:
-    def __init__(self, time=False, bits=8, high_score=0):
+    def __init__(self, time=True, bits=8, high_score=0):
         self.time = time
         self.bits = bits
         self.high_score = high_score
 
 
-    # This property dynamically determines if there is a timer or not
-      # This property needs to be modified to actually BE the timer
-    @property
-    def timer(self):
-        if self.time == True:
-            print("@property time is true")
-            # Get current date time as starting point
-            # Routinely check datetime to make sure
-              # that the game isn't out of time
-            
-        else:
-            print("No time limit")
-
-
     def clear_screen(self):
         os.system('cls' if os.name == 'nt' else 'clear')
+
+
+    # This property dynamically determines if there is a timer or not
+      # This property needs to be modified to actually BE the timer
+    # @property
+    # def timer(self):
+    #     if self.time == True:
+    def time_clock(self):
+        time_left = 3
+        while time_left > 0:
+            time.sleep(1)
+            time_left -= 1
+            print(time_left)
+        else:
+            self.clear_screen()
+            print("GAME OVER")
+            raise SystemExit()
+        
+        thread_timer = threading.Thread(target=time_clock)
+
+          
+#        else:
+#            print("No time limit")
+
+
+
 
     
     # This will be the code to convert numbers to binary or hex
@@ -56,6 +67,7 @@ class Game:
         nums = self.get_nums()
         count = 0
         score = 0
+        self.time_clock()
         while count < 10:
             self.clear_screen()
             print("Current score:{}\n".format(score))
@@ -69,3 +81,4 @@ class Game:
            
 game = Game()
 game.play()
+
