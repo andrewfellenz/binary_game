@@ -106,7 +106,10 @@ class BaseGame:
                 # Leaving a spot to put name recall
                 return high_score
         except Exception:
-            input('There is no high score file to read from.')
+            with open('high_scores.json', 'w') as high_scores:
+                json.dump({"New player": 0}, high_scores, indent=2)
+            input('Welcome to the Machine Language Challenge!')
+            self.clear_screen()
 
     # This is the command to end the game and set a new high score
     def end_game(self):
@@ -172,7 +175,7 @@ class BaseGame:
         self.play_again()
 
 
-game = BaseGame(bits=8)
+game = BaseGame(bits=4)
 game.play()
 
 
