@@ -27,11 +27,7 @@ class BaseGame:
                     # needs work
                     pass
 
-    # This property dynamically determines if there is a timer or not
-    # This property needs to be modified to actually BE the timer
-    # @property
-    # def timer(self):
-    #     if self.time == True:
+    # This function is not in use at this time: 4/16/19
     def time_clock(self):
         time_left = 3
         while time_left > 0:
@@ -121,7 +117,13 @@ class BaseGame:
 
     # prompts player to decide if they want to play another round
     def play_again(self):
-        pass
+        self.clear_screen()
+        new_game = input("Would you like to play again? [Y/N] ").lower()
+        if new_game == "y":
+            self.play()
+        else:
+            self.clear_screen()
+            raise SystemExit
 
     def play(self):
         nums = self.get_nums()
@@ -148,7 +150,7 @@ class BaseGame:
             count += 1
         self.clear_screen()
         self.end_game()
-        # self.play_again()
+        self.play_again()
 
 
 game = BaseGame(bits=2)
