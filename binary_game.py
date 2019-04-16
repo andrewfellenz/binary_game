@@ -67,7 +67,8 @@ class Game:
         nums = self.get_nums()
         count = 0
         score = 0
-        self.time_clock()
+        wrong_answers = {}
+        #self.time_clock()
         while count < 10:
             self.clear_screen()
             print("Current score:{}\n".format(score))
@@ -76,8 +77,15 @@ class Game:
             guess = input("What is {} in binary? ".format(current_number))
             correct_answer = self.convert(current_number)
             if guess == correct_answer:
+                print("That's the correct answer!")
                 score += 1
+            else:
+                print("That is not the right answer!")
+                wrong_answers.update({guess: correct_answer})
+                input(wrong_answers)
             count += 1
+        self.clear_screen()
+        print("Your final score was {}!".format(score))
            
 game = Game()
 game.play()
