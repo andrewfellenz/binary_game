@@ -62,10 +62,15 @@ class BaseGame:
 
         elif self.mode == 'hex':
             converted_num = str(hex(num)[2:])
-            answer_num = [num for num in converted_num]
+            answer_num = [num.upper() for num in converted_num]
             while len(answer_num) < self.bit_representation:
                 answer_num.insert(0, "0")
             return ''.join(answer_num)
+
+    @property
+    def total_bits(self):
+        total_bits = [str(num) for num in range(1, (self.bit_representation + 1))]
+        return ''.join(total_bits)        
 
     @property
     def game_mode(self):
@@ -118,6 +123,8 @@ class BaseGame:
     # prompts player to decide if they want to play another round
     def play_again(self):
         self.clear_screen()
+        self.score = 0
+        count = 0
         new_game = input("Would you like to play again? [Y/N] ").lower()
         if new_game == "y":
             self.play()
@@ -136,9 +143,12 @@ class BaseGame:
                   .format(self.score, self.high_score))
             current_number = random.choice(nums)
             nums.remove(current_number)
-            guess = input("What is {} in {}?\nUse the format \"{}\" "
-                          .format(current_number, self.mode,
-                                  ("0" * self.bit_representation)))
+            guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
+                          "Bit numbers by position:\n"
+                          "{}\n".format(current_number, self.mode,
+                                      ("0" * self.bit_representation),
+                                       self.total_bits))
+
             correct_answer = self.convert(current_number)
             if guess == correct_answer:
                 input("\nThat's the correct answer!")
@@ -153,7 +163,7 @@ class BaseGame:
         self.play_again()
 
 
-game = BaseGame(bits=2)
+game = BaseGame(bits=8)
 game.play()
 
 
