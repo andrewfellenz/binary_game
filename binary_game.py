@@ -1,3 +1,12 @@
+# The game still needs some updates. The issues are the following:
+# All input blocks still accept incorrect entries
+# Game mode is still not selectable by user
+# Tutorial still needs to be built
+# Still needs to be ported to Android / IOS
+# Still needs GUI to be made
+# Needs more comments explaining functions
+# Needs a menu
+
 import os
 import random
 import time
