@@ -16,7 +16,7 @@ import json
 
 # This is the parent class for the games
 class BaseGame:
-    def __init__(self, time=True, bits=8, mode='binary', score=0):
+    def __init__(self, time=True, bits=4, mode='binary', score=0):
         self.time = time
         self.bits = bits
         self.mode = mode
@@ -26,6 +26,7 @@ class BaseGame:
     def clear_screen(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
+    # Not yet running
     def char_check(self, char_set, char, input_message):
         while True:
             guess = input(input_message)
@@ -181,7 +182,7 @@ game.play()
 
 class Hex(BaseGame):
     def __init__(self):
-        super().__init__(bits=8, mode='hex')
+        super().__init__(bits=4, mode='hex')
 
 
 game_2 = Hex()
