@@ -1,74 +1,87 @@
 # The game still needs some updates. The issues are the following:
-# All input blocks still accept incorrect entries
 # Game mode is still not selectable by user
 # Tutorial still needs to be built
 # Still needs to be ported to Android / IOS
 # Still needs GUI to be made
 # Needs more comments explaining functions
-# Needs a menu
+
+# Still need a way to display the HUD and Time
+# Without disrupting everything else
+# The main issue is with how the HUD and check_input
+# functions are coupled together.
+
+# Binary and Hex modes still need to check input
 
 import random
 import time
 import threading
 import json
 import utils
-# Here is where the menu to play the game will go
 
 
 mode = ['hex', 'bin']
 mode_question = "Do you want to play in [Hex] or [Bin] Mode? "
-mode_error_text= 'You must enter either "Hex" or "Bin"! '
+mode_error_text= 'You must enter either Hex or Bin! '
 
 bits = [1, 2, 4, 8, 16, 32, 64, 128]
 bits_question = "How many bits would you like to play with? "
-bits_error_text = 'You must enter a number that is a power of 2!'
+bits_error_text = 'You must enter a number that is a power of 2.'
 
 again = ['yes', 'no', 'y', 'n']
-again_question = "Would you like to play again? [Y/N] "
-again_error_text = 'You must enter "Yes" or "No"!'
+again_question = "Would you like to play again? [Yes/No] "
+again_error_text = 'You must enter yes or no.'
+
+BINARY = [0, 1]
+binary_question = ''
+binary_error_text = 'Please enter only 0 and 1.'
+
+HEX = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f']
+hex_question = ''
+hex_error_text = 'Please Enter only numbers 0-9 and letters A-F.'
 
 welcome = "Welcome to the Machine Language Game!"
 
 
+def hud(*args):
+    utils.clear_screen()
+    if args:
+        for arg in args:
+            print(arg)
+
+
+def check_input(terms, question, error_text, integer=False):
+    while True:
+        try:
+            if integer == False:
+                ask_user = input(question).lower()
+            else:
+                ask_user = input(question)
+                try:
+                    ask_user = int(ask_user)
+                except ValueError:
+                    hud(error_text)
+            if ask_user in terms:
+                hud()
+                return ask_user
+            else:
+                raise ValueError(error_text)
+        except ValueError as error:
+            hud(error)
+
+
 # This is the parent class for the games
 class Game:
-    def __init__(self, time=True, bits=4, mode='bin', score=0):
+    def __init__(self, mode, bits, score=0, time=None):
         self.time = time
         self.bits = bits
         self.mode = mode
         self.score = score
 
-    def hud(self, *args):
-        utils.clear_screen()
-        self.status_bar()
-        if args:
-            for arg in args:
-                print(arg)
-
-    def status_bar(self):
-        mode_bar = "Mode: {}  |  Bits: {}  |  Time limit: {}".format(self.mode, self.bits, self.time)
-        score_bar = "Score: {}  | High Score: {}\n\n".format(self.score, self.high_score)
-        print(mode_bar)
-        print(score_bar)
+    def __str__(self):
+        message = "Mode: {}  |  Bits: {}  |  Time limit: {}  |\nScore: {}  |  High Score: {}\n".format
+        (self.mode, self.bits, self.time, self.score, self.high_score)
+        return message
      
-    def check_input(self, terms, question, error_text, integer=False, start=False):
-        while True:
-            try:
-                if integer == False:
-                    ask_user = input(question).lower()
-                else:
-                    ask_user = int(input(question))
-                if ask_user in terms:
-                    if start == True:
-                        setattr(self, str(ask_user), terms)
-                    self.hud()
-                    return ask_user
-                else:
-                    raise ValueError(error_text)
-            except ValueError as error:
-                utils.clear_screen()
-                self.hud(error)
-
     # This function is not in use at this time: 4/16/19
     def time_clock(self):
         time_left = 3
@@ -167,12 +180,12 @@ class Game:
 
     # prompts player to decide if they want to play another round
     def play_again(self):
-        self.hud()
-        play = self.check_input(AGAIN, again_question, again_error_text)
+        hud()
+        play = check_input(again, again_question, again_error_text)
         if play == 'yes' or play == 'y':
             self.score = 0
             count = 0
-            game.play()
+            Game.menu()
         else:
             raise SystemExit
 
@@ -182,7 +195,7 @@ class Game:
         wrong_answers = {}
         # self.time_clock()
         while count < (2 + self.bits):
-            self.hud()
+            hud()
             current_number = random.choice(nums)
             nums.remove(current_number)
             guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
@@ -192,6 +205,8 @@ class Game:
                                        self.total_bits))
 
             correct_answer = self.convert(current_number)
+            if self.mode == 'hex':
+                guess = guess.upper()
             if guess == correct_answer:
                 input("\nThat's the correct answer!")
                 self.score += 1
@@ -200,20 +215,21 @@ class Game:
                 wrong_answers.update({guess: correct_answer})
                 input(wrong_answers)
             count += 1
-        self.hud()
+        hud()
         self.end_game()
         self.play_again()
+    
+    # This is the first method called in the game
+    @classmethod
+    def menu(cls):
+        hud()
+        game = cls(check_input(mode, mode_question, mode_error_text),
+        check_input(bits, bits_question, bits_error_text, integer=True))
+        game.play()
         
-    def menu(self):
-        self.hud(welcome)
-        self.check_input(mode, mode_question, mode_error_text, start=True)
-        self.check_input(bits, bits_question, bits_error_text, integer=True, start=True)
-        self.play()
-
 
 if __name__ == '__main__':
 
-    game = Game()
-    game.menu()
+    Game.menu()
 
 
