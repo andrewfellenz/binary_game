@@ -7,35 +7,67 @@
 # Needs more comments explaining functions
 # Needs a menu
 
-import os
 import random
 import time
 import threading
 import json
+import utils
+# Here is where the menu to play the game will go
+
+
+mode = ['hex', 'bin']
+mode_question = "Do you want to play in [Hex] or [Bin] Mode? "
+mode_error_text= 'You must enter either "Hex" or "Bin"! '
+
+bits = [1, 2, 4, 8, 16, 32, 64, 128]
+bits_question = "How many bits would you like to play with? "
+bits_error_text = 'You must enter a number that is a power of 2!'
+
+again = ['yes', 'no', 'y', 'n']
+again_question = "Would you like to play again? [Y/N] "
+again_error_text = 'You must enter "Yes" or "No"!'
+
+welcome = "Welcome to the Machine Language Game!"
 
 
 # This is the parent class for the games
-class BaseGame:
-    def __init__(self, time=True, bits=4, mode='binary', score=0):
+class Game:
+    def __init__(self, time=True, bits=4, mode='bin', score=0):
         self.time = time
         self.bits = bits
         self.mode = mode
         self.score = score
 
-    # Used to clear the screen between messages / guesses
-    def clear_screen(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
+    def hud(self, *args):
+        utils.clear_screen()
+        self.status_bar()
+        if args:
+            for arg in args:
+                print(arg)
 
-    # Not yet running
-    def char_check(self, char_set, char, input_message):
+    def status_bar(self):
+        mode_bar = "Mode: {}  |  Bits: {}  |  Time limit: {}".format(self.mode, self.bits, self.time)
+        score_bar = "Score: {}  | High Score: {}\n\n".format(self.score, self.high_score)
+        print(mode_bar)
+        print(score_bar)
+     
+    def check_input(self, terms, question, error_text, integer=False, start=False):
         while True:
-            guess = input(input_message)
-            for each in guess:
-                if each in self.char_set:
-                    continue
+            try:
+                if integer == False:
+                    ask_user = input(question).lower()
                 else:
-                    # needs work
-                    pass
+                    ask_user = int(input(question))
+                if ask_user in terms:
+                    if start == True:
+                        setattr(self, str(ask_user), terms)
+                    self.hud()
+                    return ask_user
+                else:
+                    raise ValueError(error_text)
+            except ValueError as error:
+                utils.clear_screen()
+                self.hud(error)
 
     # This function is not in use at this time: 4/16/19
     def time_clock(self):
@@ -45,7 +77,7 @@ class BaseGame:
             time_left -= 1
             print(time_left)
         else:
-            self.clear_screen()
+            utils.clear_screen()
             print("GAME OVER")
             raise SystemExit()
         thread_timer = threading.Thread(target=time_clock)
@@ -63,7 +95,7 @@ class BaseGame:
 
     # Converts a random number into a plain binary Str for comparison
     def convert(self, num):
-        if self.mode == 'binary':
+        if self.mode == 'bin':
             converted_num = str(bin(num)[2:])
             answer_num = [num for num in converted_num]
             while len(answer_num) < self.bits:
@@ -80,8 +112,11 @@ class BaseGame:
     @property
     def total_bits(self):
         total_bits = [str(num) for num in range(1, (self.bit_representation + 1))]
+        total_bits.reverse()
         return ''.join(total_bits)        
 
+
+    # This has still not been implemented
     @property
     def game_mode(self):
         # This has been tested and is correct
@@ -89,7 +124,7 @@ class BaseGame:
 
     @property
     def bit_representation(self):
-        if self.mode == 'binary':
+        if self.mode == 'bin':
             bit_representation = self.bits
         elif self.mode == 'hex':
             bit_representation = int(self.bits / 4)
@@ -110,14 +145,12 @@ class BaseGame:
             with open('high_scores.json', 'w') as high_scores:
                 json.dump({"New player": 0}, high_scores, indent=2)
             input('Welcome to the Machine Language Challenge!')
-            self.clear_screen()
+            utils.clear_screen()
 
     # This is the command to end the game and set a new high score
     def end_game(self):
         print("Game over")
         if self.score > self.high_score:
-            print("Congratulations! {} is the new high score!"
-                  .format(self.score))
             while True:
                 try:
                     # still needs alpha check
@@ -131,18 +164,16 @@ class BaseGame:
                 except ValueError:
                     # still need proper exception handling
                     pass
-        input("Your final score is: {}".format(self.score))
 
     # prompts player to decide if they want to play another round
     def play_again(self):
-        self.clear_screen()
-        self.score = 0
-        count = 0
-        new_game = input("Would you like to play again? [Y/N] ").lower()
-        if new_game == "y":
-            self.play()
+        self.hud()
+        play = self.check_input(AGAIN, again_question, again_error_text)
+        if play == 'yes' or play == 'y':
+            self.score = 0
+            count = 0
+            game.play()
         else:
-            self.clear_screen()
             raise SystemExit
 
     def play(self):
@@ -151,9 +182,7 @@ class BaseGame:
         wrong_answers = {}
         # self.time_clock()
         while count < (2 + self.bits):
-            self.clear_screen()
-            print("Current score: {}  |  Current high score: {}\n"
-                  .format(self.score, self.high_score))
+            self.hud()
             current_number = random.choice(nums)
             nums.remove(current_number)
             guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
@@ -171,19 +200,20 @@ class BaseGame:
                 wrong_answers.update({guess: correct_answer})
                 input(wrong_answers)
             count += 1
-        self.clear_screen()
+        self.hud()
         self.end_game()
         self.play_again()
+        
+    def menu(self):
+        self.hud(welcome)
+        self.check_input(mode, mode_question, mode_error_text, start=True)
+        self.check_input(bits, bits_question, bits_error_text, integer=True, start=True)
+        self.play()
 
 
-game = BaseGame(bits=4)
-game.play()
+if __name__ == '__main__':
+
+    game = Game()
+    game.menu()
 
 
-class Hex(BaseGame):
-    def __init__(self):
-        super().__init__(bits=4, mode='hex')
-
-
-game_2 = Hex()
-# game_2.play()
