@@ -20,11 +20,11 @@ import utils
 
 mode = ['hex', 'bin']
 mode_question = "\nDo you want to play in [Hex] or [Bin] Mode? "
-mode_error_text= '\nYou must enter either Hex or Bin! '
+mode_error_text= '\nYou must enter either Hex or Bin!\nPress Enter to continue.'
 
 bits = [1, 2, 4, 8, 16, 32, 64]
 bits_question = "\nHow many bits would you like to play with? "
-bits_error_text = '\nYou must enter a number that is a power of 2! '
+bits_error_text = '\nYou must enter a number that is a power of 2!\nPress Enter to continue.'
 
 again = ['yes', 'no', 'y', 'n']
 again_question = "\nWould you like to play again? [Yes/No] "
@@ -223,7 +223,7 @@ class Game:
                             self.hud()
                             print("That is not the right answer!")
                             print("You answered: {}".format(guess))
-                            input("The correct answer was: {}".format(correct_answer))
+                            input("{} in hex is {}".format(current_number, correct_answer))
                             wrong_answers.update({guess: correct_answer})
                         nums.remove(current_number)
                         count += 1
@@ -242,7 +242,7 @@ class Game:
                             self.hud()
                             print("That is not the right answer!")
                             print("You answered: {}".format(guess))
-                            input("The correct answer was: {}".format(correct_answer))
+                            input("{} in binary is {}".format(current_number, correct_answer))
                             wrong_answers.update({guess: correct_answer})
                         nums.remove(current_number)
                         count += 1
@@ -260,7 +260,6 @@ class Game:
         utils.clear_screen()
         game = cls(check_input(mode, mode_question, mode_error_text),
         check_input(bits, bits_question, bits_error_text, integer=True))
-#        game.hud(pause=True)
         game.play()
 
     def hud(self, *args, pause=False):
@@ -282,7 +281,6 @@ class Game:
                     try:
                         ask_user = int(ask_user)
                     except ValueError:
-                        print(error_text)
                         self.hud(error_text)
                 if ask_user in terms:
                     self.hud()
