@@ -42,11 +42,13 @@ hex_error_text = 'Please Enter only numbers 0-9 and letters A-F.'
 welcome = "Welcome to the Machine Language Game!"
 
 
-def hud(*args):
+def hud(*args, pause=False):
     utils.clear_screen()
     if args:
         for arg in args:
             print(arg)
+    if pause == True:
+        input("Press Enter to continue.")
 
 
 def check_input(terms, question, error_text, integer=False):
@@ -78,10 +80,10 @@ class Game:
         self.score = score
 
     def __str__(self):
-        message = "Mode: {}  |  Bits: {}  |  Time limit: {}  |\nScore: {}  |  High Score: {}\n".format
-        (self.mode, self.bits, self.time, self.score, self.high_score)
+        message = "Mode: {}  |  Bits: {}  |  Time limit: {}  |\nScore: {}  |  High Score: {}\n".format(
+            self.mode, self.bits, self.time, self.score, self.high_score)
         return message
-     
+    
     # This function is not in use at this time: 4/16/19
     def time_clock(self):
         time_left = 3
@@ -225,6 +227,7 @@ class Game:
         hud()
         game = cls(check_input(mode, mode_question, mode_error_text),
         check_input(bits, bits_question, bits_error_text, integer=True))
+        hud(game, pause=True)
         game.play()
         
 
