@@ -19,16 +19,16 @@ import utils
 
 
 mode = ['hex', 'bin']
-mode_question = "Do you want to play in [Hex] or [Bin] Mode? "
-mode_error_text= 'You must enter either Hex or Bin! '
+mode_question = "\nDo you want to play in [Hex] or [Bin] Mode? "
+mode_error_text= '\nYou must enter either Hex or Bin! '
 
-bits = [1, 2, 4, 8, 16, 32, 64, 128]
-bits_question = "How many bits would you like to play with? "
-bits_error_text = 'You must enter a number that is a power of 2. '
+bits = [1, 2, 4, 8, 16, 32, 64]
+bits_question = "\nHow many bits would you like to play with? "
+bits_error_text = '\nYou must enter a number that is a power of 2! '
 
 again = ['yes', 'no', 'y', 'n']
-again_question = "Would you like to play again? [Yes/No] "
-again_error_text = 'You must enter yes or no.\n'
+again_question = "\nWould you like to play again? [Yes/No] "
+again_error_text = '\nYou must enter yes or no.\n'
 
 BINARY = [0, 1]
 binary_error_text = 'Please enter only 0s and 1s in the correct format.\n'
@@ -41,6 +41,7 @@ welcome = "Welcome to the Machine Language Game!"
 
 def check_input(terms, question, error_text, integer=False):
     while True:
+        utils.clear_screen()
         try:
             if integer == False:
                 ask_user = input(question).lower()
@@ -69,7 +70,7 @@ class Game:
         self.score = score
 
     def __str__(self):
-        message = "Score: {}  |  High Score: {}  |  Mode: {}  |  Bits: {}  |  Time limit: {}\n".format(
+        message = "\nScore: {}  |  High Score: {}  |  Mode: {}  |  Bits: {}  |  Time limit: {}\n".format(
             self.score, self.high_score, self.mode, self.bits, self.time)
         return message
     
@@ -124,7 +125,7 @@ class Game:
     @property
     def char_set(self):
         # This has been tested and is correct
-        char_set = [self.convert(num) for num in range(0, (self.bits ** 2))]
+        char_set = [self.convert(num) for num in range(0, (2 ** self.bits))]
         return char_set
 
     @property
@@ -161,12 +162,13 @@ class Game:
             with open('high_score.json', 'w') as high_score:
                 json.dump({"New player": 0}, high_score, indent=2)
             input('Welcome to the Machine Language Challenge!')
-            self.high_score = 0
             utils.clear_screen()
+            return 0
 
     # This is the command to end the game and set a new high score
     def end_game(self):
-        print("Game over")
+        utils.clear_screen()
+        print("\nGame over")
         if self.score > self.high_score:
             while True:
                 try:
@@ -174,13 +176,15 @@ class Game:
                     initials = input("Please enter your initials! ").lower()
                     high_score = {initials: self.score}
                     # This code is here for now, but may be moved
-                    with open('high_scores.json', 'w') as write_file:
+                    with open('high_score.json', 'w') as write_file:
                         json.dump(high_score, write_file, indent=2)
                     break
                 # This still needs tooling
                 except ValueError:
                     # still need proper exception handling
                     pass
+        else:
+            input('\nYour final score was: {}!'.format(self.score))
 
     # prompts player to decide if they want to play another round
     def play_again(self):
@@ -216,8 +220,11 @@ class Game:
                             self.score += 1
                         else:
                             input("\nThat is not the right answer!")
+                            self.hud()
+                            print("That is not the right answer!")
+                            print("You answered: {}".format(guess))
+                            input("The correct answer was: {}".format(correct_answer))
                             wrong_answers.update({guess: correct_answer})
-                            input(wrong_answers)
                         nums.remove(current_number)
                         count += 1
                     else:
@@ -229,12 +236,14 @@ class Game:
                 try:
                     if guess in self.char_set:
                         if guess == correct_answer:
-                            input("\nThat's the correct answer!")
+                            print("\nThat's the correct answer!")
                             self.score += 1
                         else:
-                            input("\nThat is not the right answer!")
+                            self.hud()
+                            print("That is not the right answer!")
+                            print("You answered: {}".format(guess))
+                            input("The correct answer was: {}".format(correct_answer))
                             wrong_answers.update({guess: correct_answer})
-                            input(wrong_answers)
                         nums.remove(current_number)
                         count += 1
                     else:
