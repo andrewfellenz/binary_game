@@ -13,10 +13,9 @@
 # Binary and Hex modes still need to check input
 
 import random
-import time
-import threading
 import json
 import utils
+
 
 
 mode = ['hex', 'bin']
@@ -25,30 +24,19 @@ mode_error_text= 'You must enter either Hex or Bin! '
 
 bits = [1, 2, 4, 8, 16, 32, 64, 128]
 bits_question = "How many bits would you like to play with? "
-bits_error_text = 'You must enter a number that is a power of 2.'
+bits_error_text = 'You must enter a number that is a power of 2. '
 
 again = ['yes', 'no', 'y', 'n']
 again_question = "Would you like to play again? [Yes/No] "
-again_error_text = 'You must enter yes or no.'
+again_error_text = 'You must enter yes or no.\n'
 
 BINARY = [0, 1]
-binary_question = ''
-binary_error_text = 'Please enter only 0 and 1.'
+binary_error_text = 'Please enter only 0s and 1s in the correct format.\n'
 
 HEX = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f']
-hex_question = ''
-hex_error_text = 'Please Enter only numbers 0-9 and letters A-F.'
+hex_error_text = 'Please Enter only numbers 0-9 and letters A-F in the correct format.\n'
 
 welcome = "Welcome to the Machine Language Game!"
-
-
-def hud(*args, pause=False):
-    utils.clear_screen()
-    if args:
-        for arg in args:
-            print(arg)
-    if pause == True:
-        input("Press Enter to continue.")
 
 
 def check_input(terms, question, error_text, integer=False):
@@ -60,15 +48,16 @@ def check_input(terms, question, error_text, integer=False):
                 ask_user = input(question)
                 try:
                     ask_user = int(ask_user)
-                except ValueError:
-                    hud(error_text)
+                except:
+                    raise ValueError(error_text)
             if ask_user in terms:
-                hud()
+                utils.clear_screen()
                 return ask_user
             else:
                 raise ValueError(error_text)
         except ValueError as error:
-            hud(error)
+            utils.clear_screen()
+            input(error)
 
 
 # This is the parent class for the games
@@ -80,8 +69,8 @@ class Game:
         self.score = score
 
     def __str__(self):
-        message = "Mode: {}  |  Bits: {}  |  Time limit: {}  |\nScore: {}  |  High Score: {}\n".format(
-            self.mode, self.bits, self.time, self.score, self.high_score)
+        message = "Score: {}  |  High Score: {}  |  Mode: {}  |  Bits: {}  |  Time limit: {}\n".format(
+            self.score, self.high_score, self.mode, self.bits, self.time)
         return message
     
     # This function is not in use at this time: 4/16/19
@@ -101,8 +90,8 @@ class Game:
     def get_nums(self):
         while True:
             number_set = set([random.randint(0, ((2 ** self.bits) - 1))
-                              for _ in range(2 + self.bits)])
-            if len(number_set) < (2 + self.bits):
+                              for _ in range(2 * self.bits)])
+            if len(number_set) < (2 * self.bits):
                 continue
             else:
                 guess_list = [num for num in number_set]
@@ -133,9 +122,10 @@ class Game:
 
     # This has still not been implemented
     @property
-    def game_mode(self):
+    def char_set(self):
         # This has been tested and is correct
-        self.char_set = [self.convert(num) for num in range(0, (bits ** 2))]
+        char_set = [self.convert(num) for num in range(0, (self.bits ** 2))]
+        return char_set
 
     @property
     def bit_representation(self):
@@ -145,21 +135,33 @@ class Game:
             bit_representation = int(self.bits / 4)
         return bit_representation
 
+    # @property
+    # def format_question(self):
+    #     message =
+    #     "What is {} in {}?\nUse the format \"{}\"\n\n
+    #     Bit numbers by position:\n
+    #     {}\n".format(
+    #         current_number, self.mode,
+    #         ("0" * self.bit_representation), self.total_bits))
+    #     return message
+
+
     # This property dynamically grabs the high score from a separate file
     # at the beginning of each game.
     @property
     def high_score(self):
         try:
-            with open('high_scores.json', 'r') as scores:
+            with open('high_score.json', 'r') as scores:
                 scores.seek(0)
                 all_scores = json.load(scores)
                 high_score = max(all_scores.values())
                 # Leaving a spot to put name recall
                 return high_score
         except Exception:
-            with open('high_scores.json', 'w') as high_scores:
-                json.dump({"New player": 0}, high_scores, indent=2)
+            with open('high_score.json', 'w') as high_score:
+                json.dump({"New player": 0}, high_score, indent=2)
             input('Welcome to the Machine Language Challenge!')
+            self.high_score = 0
             utils.clear_screen()
 
     # This is the command to end the game and set a new high score
@@ -182,53 +184,105 @@ class Game:
 
     # prompts player to decide if they want to play another round
     def play_again(self):
-        hud()
+        self.hud()
         play = check_input(again, again_question, again_error_text)
         if play == 'yes' or play == 'y':
             self.score = 0
             count = 0
             Game.menu()
         else:
+            utils.clear_screen()
             raise SystemExit
 
     def play(self):
         nums = self.get_nums()
         count = 0
         wrong_answers = {}
-        # self.time_clock()
-        while count < (2 + self.bits):
-            hud()
+        while count < (2 * self.bits):
+            self.hud()
             current_number = random.choice(nums)
-            nums.remove(current_number)
             guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
                           "Bit numbers by position:\n"
                           "{}\n".format(current_number, self.mode,
                                       ("0" * self.bit_representation),
                                        self.total_bits))
-
             correct_answer = self.convert(current_number)
             if self.mode == 'hex':
-                guess = guess.upper()
-            if guess == correct_answer:
-                input("\nThat's the correct answer!")
-                self.score += 1
-            else:
-                input("\nThat is not the right answer!")
-                wrong_answers.update({guess: correct_answer})
-                input(wrong_answers)
-            count += 1
-        hud()
+                try:
+                    guess = guess.upper()
+                    if guess in self.char_set:
+                        if guess == correct_answer:
+                            input("\nThat's the correct answer!")
+                            self.score += 1
+                        else:
+                            input("\nThat is not the right answer!")
+                            wrong_answers.update({guess: correct_answer})
+                            input(wrong_answers)
+                        nums.remove(current_number)
+                        count += 1
+                    else:
+                        raise ValueError(hex_error_text)
+                except ValueError as error:
+                    self.hud(error, pause=True)
+                    
+            elif self.mode == 'bin':
+                try:
+                    if guess in self.char_set:
+                        if guess == correct_answer:
+                            input("\nThat's the correct answer!")
+                            self.score += 1
+                        else:
+                            input("\nThat is not the right answer!")
+                            wrong_answers.update({guess: correct_answer})
+                            input(wrong_answers)
+                        nums.remove(current_number)
+                        count += 1
+                    else:
+                        raise ValueError(binary_error_text)
+                except ValueError as error:
+                    self.hud(error, pause=True)
+        self.hud()
         self.end_game()
         self.play_again()
     
     # This is the first method called in the game
     @classmethod
     def menu(cls):
-        hud()
+        utils.clear_screen()
         game = cls(check_input(mode, mode_question, mode_error_text),
         check_input(bits, bits_question, bits_error_text, integer=True))
-        hud(game, pause=True)
+#        game.hud(pause=True)
         game.play()
+
+    def hud(self, *args, pause=False):
+        utils.clear_screen()
+        print(self)
+        if args:
+            for arg in args:
+                print(arg)
+        if pause == True:
+            input("Press Enter to continue.")
+
+    def check_input(self, terms, question, error_text, integer=False):
+        while True:
+            try:
+                if integer == False:
+                    ask_user = input(question).lower()
+                else:
+                    ask_user = input(question)
+                    try:
+                        ask_user = int(ask_user)
+                    except ValueError:
+                        print(error_text)
+                        self.hud(error_text)
+                if ask_user in terms:
+                    self.hud()
+                    return ask_user
+                else:
+                    raise ValueError(error_text)
+            except ValueError as error:
+                self.hud(error)
+
         
 
 if __name__ == '__main__':
