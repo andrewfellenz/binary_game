@@ -17,7 +17,6 @@ import json
 import utils
 
 
-
 mode = ['hex', 'bin']
 mode_question = "\nDo you want to play in [Hex] or [Bin] Mode? "
 mode_error_text= '\nYou must enter either Hex or Bin!\nPress Enter to continue.'
@@ -87,7 +86,7 @@ class Game:
             raise SystemExit()
         thread_timer = threading.Thread(target=time_clock)
 
-    # This will be the code to convert numbers to binary or hex
+    # This method creates the set of regular numbers from which guesses will be made
     def get_nums(self):
         while True:
             number_set = set([random.randint(0, ((2 ** self.bits) - 1))
@@ -95,8 +94,8 @@ class Game:
             if len(number_set) < (2 * self.bits):
                 continue
             else:
-                guess_list = [num for num in number_set]
-                return guess_list
+                return [num for num in number_set]
+
 
     # Converts a random number into a plain binary Str for comparison
     def convert(self, num):
@@ -114,11 +113,24 @@ class Game:
                 answer_num.insert(0, "0")
             return ''.join(answer_num)
 
-    @property
-    def total_bits(self):
-        total_bits = [str(num) for num in range(1, (self.bit_representation + 1))]
-        total_bits.reverse()
-        return ''.join(total_bits)        
+    def guess(self, guess_list):
+        self.hud()
+        current_number = random.choice(guess_list)
+        guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
+                      ">"
+                      .format(current_number, self.mode,
+                                    ("0" * self.bit_representation)))
+        correct_answer = self.convert(current_number)
+        return guess, current_number, correct_answer
+
+    
+    # This property is no longer in use. It was intended to indicate the bit value
+    #     for each spot, but it made the UI clunky and confusing.
+    # @property
+    # def total_bits(self):
+    #     total_bits = [str(num) for num in range(1, (self.bit_representation + 1))]
+    #     total_bits.reverse()
+    #     return ''.join(total_bits)        
 
 
     # This has still not been implemented
@@ -198,19 +210,14 @@ class Game:
             utils.clear_screen()
             raise SystemExit
 
+
+    # This whole section needs to be refactored
     def play(self):
-        nums = self.get_nums()
+        guess_nums = self.get_nums()
         count = 0
         wrong_answers = {}
         while count < (2 * self.bits):
-            self.hud()
-            current_number = random.choice(nums)
-            guess = input("What is {} in {}?\nUse the format \"{}\"\n\n"
-                          "Bit numbers by position:\n"
-                          "{}\n".format(current_number, self.mode,
-                                      ("0" * self.bit_representation),
-                                       self.total_bits))
-            correct_answer = self.convert(current_number)
+            guess, current_number, correct_answer = self.guess(guess_nums)
             if self.mode == 'hex':
                 try:
                     guess = guess.upper()
@@ -220,12 +227,11 @@ class Game:
                             self.score += 1
                         else:
                             input("\nThat is not the right answer!")
-                            self.hud()
-                            print("That is not the right answer!")
                             print("You answered: {}".format(guess))
                             input("{} in hex is {}".format(current_number, correct_answer))
                             wrong_answers.update({guess: correct_answer})
-                        nums.remove(current_number)
+                            self.hud()
+                        guess_nums.remove(current_number)
                         count += 1
                     else:
                         raise ValueError(hex_error_text)
@@ -236,15 +242,15 @@ class Game:
                 try:
                     if guess in self.char_set:
                         if guess == correct_answer:
-                            print("\nThat's the correct answer!")
+                            input("\nThat's the correct answer!")
                             self.score += 1
                         else:
-                            self.hud()
                             print("That is not the right answer!")
+                            self.hud()
                             print("You answered: {}".format(guess))
                             input("{} in binary is {}".format(current_number, correct_answer))
                             wrong_answers.update({guess: correct_answer})
-                        nums.remove(current_number)
+                        guess_nums.remove(current_number)
                         count += 1
                     else:
                         raise ValueError(binary_error_text)
